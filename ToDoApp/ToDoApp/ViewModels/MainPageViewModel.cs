@@ -27,7 +27,7 @@ namespace ToDoApp.ViewModels
         public ICommand LoadDataCommand { get; private set; }
         public ICommand AddItemCommand { get; private set; }
         public ICommand SelectItemCommand { get; private set; }
-        public ICommand DeleteItemDataCommand { get; private set; }
+        public ICommand DeleteItemCommand { get; private set; }
 
         public MainPageViewModel(IItemStore itemStore, IPageService pageService)
         {
@@ -37,6 +37,7 @@ namespace ToDoApp.ViewModels
             LoadDataCommand = new Command(async () => await LoadData());
             SelectItemCommand = new Command<ItemViewModel>(async c => await SelectItem(c));
             AddItemCommand = new Command(async () => await AddItem());
+            DeleteItemCommand = new Command<ItemViewModel>(async c => await DeleteItem(c));
         }
 
         private async Task LoadData()
@@ -75,6 +76,17 @@ namespace ToDoApp.ViewModels
             viewModel.ItemAdded += (source, item) => { Items.Add(new ItemViewModel(item)); };
 
             await _pageService.PushAsync(new ItemDetails(viewModel));
+        }
+
+        private async Task DeleteItem(ItemViewModel itemViewModel)
+        {
+            if (await _pageService.DisplayAlert("Warning", $"Are you sure you want to delete {itemViewModel.Title}?", "Yes", "No"))
+            {
+                Items.Remove(itemViewModel);
+                var item = await _itemStore.GetItem(itemViewModel.Id);
+                await _itemStore.DeleteItem(item);
+            }
+
         }
     }
 }

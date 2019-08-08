@@ -6,7 +6,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              x:Class="ToDoApp.Views.MainPage"
-             Title="To Do List">
+             Title="To Do List"
+             x:Name="page">
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Add" Command="{Binding AddItemCommand}"/>
@@ -17,7 +18,14 @@
               ItemSelected="OnItemSelected">
         <ListView.ItemTemplate>
             <DataTemplate>
-                <TextCell Text="{Binding Title}" Detail="{Binding Notes}" />
+                <TextCell Text="{Binding Title}" Detail="{Binding Notes}">
+                    <TextCell.ContextActions>
+                        <MenuItem Text="Delete" 
+                                  IsDestructive="true" 
+                                  Command="{Binding Source={x:Reference page}, Path=ViewModel.DeleteItemCommand}"
+                                  CommandParameter="{Binding .}"/>
+                    </TextCell.ContextActions>
+                </TextCell>
             </DataTemplate>
         </ListView.ItemTemplate>
     </ListView>

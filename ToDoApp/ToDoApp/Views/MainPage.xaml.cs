@@ -19,7 +19,7 @@ namespace ToDoApp.Views
             InitializeComponent();
         }
 
-        private MainPageViewModel ViewModel
+        public MainPageViewModel ViewModel
         {
             get => BindingContext as MainPageViewModel;
             set => BindingContext = value;
