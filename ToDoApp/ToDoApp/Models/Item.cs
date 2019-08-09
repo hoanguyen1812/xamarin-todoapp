@@ -7,7 +7,7 @@ namespace ToDoApp.Models
 {
     public class Item
     {
-        [PrimaryKey, AutoIncrement]
+        //[PrimaryKey, AutoIncrement]
         public int Id { get; set; }
 
         public string Title { get; set; }

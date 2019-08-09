@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using ToDoApp.Infrastructure;
+using ToDoApp.Models;
 using ToDoApp.Views;
 using Xamarin.Forms;
+using Newtonsoft.Json;
+using ToDoApp.Services;
 
 namespace ToDoApp.ViewModels
 {
@@ -15,6 +20,7 @@ namespace ToDoApp.ViewModels
         private IItemStore _itemStore;
         private IPageService _pageService;
         private bool _isDataLoaded;
+        private  HttpClient _client = new HttpClient();
 
         public ObservableCollection<ItemViewModel> Items { get; private set; } = new ObservableCollection<ItemViewModel>();
 
@@ -24,10 +30,34 @@ namespace ToDoApp.ViewModels
             set => SetValue(ref _selectedItem, value);
         }
 
+        private bool _isRefreshing = false;
+        public bool IsRefreshing { 
+            get { return _isRefreshing; }
+            set {
+                SetValue(ref _isRefreshing, value);
+                OnPropertyChanged(nameof(IsRefreshing));
+            }
+        }
+
         public ICommand LoadDataCommand { get; private set; }
         public ICommand AddItemCommand { get; private set; }
         public ICommand SelectItemCommand { get; private set; }
         public ICommand DeleteItemCommand { get; private set; }
+
+        public ICommand RefreshCommand
+        {
+            get {
+                return new Command(async () =>
+                {
+                    IsRefreshing = true;
+
+                    _isDataLoaded = false;
+                    await LoadData();
+
+                    IsRefreshing = false;
+                });
+            }
+        }
 
         public MainPageViewModel(IItemStore itemStore, IPageService pageService)
         {
@@ -46,7 +76,9 @@ namespace ToDoApp.ViewModels
                 return;
             _isDataLoaded = true;
 
-            var items = await _itemStore.GetItemsAsync();
+            //var items = await _itemStore.GetItemsAsync();
+            Items.Clear();
+            var items = await new ItemService().GetItemsAsync();
             foreach (var item in items)
             {
                 Items.Add(new ItemViewModel(item));
@@ -83,8 +115,9 @@ namespace ToDoApp.ViewModels
             if (await _pageService.DisplayAlert("Warning", $"Are you sure you want to delete {itemViewModel.Title}?", "Yes", "No"))
             {
                 Items.Remove(itemViewModel);
-                var item = await _itemStore.GetItem(itemViewModel.Id);
-                await _itemStore.DeleteItem(item);
+                //var item = await _itemStore.GetItem(itemViewModel.Id);
+                //await _itemStore.DeleteItem(item);
+                await _client.DeleteAsync($"{Constants.URL}/{itemViewModel.Id}");
             }
 
         }
